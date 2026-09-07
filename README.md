@@ -1,14 +1,14 @@
 # SEVENFOLD
 
 A standing-play WebXR arena game for **js13kGames 2026** (theme: *Unicorns and
-Rainbows*), category **WebXR**. One `index.html`, 13,286 bytes zipped, plus the
+Rainbows*), category **WebXR**. One `index.html`, 13,253 bytes zipped, plus the
 competition's hosted Three.js.
 
 You are a mage holding the last rainbow. The Umbra took the colour out of the
 unicorns' world and sends its hollow herd against you: ash-black unicorns, each
 with one burning horn in one of seven colours. Hold both triggers and the rainbow
 stiffens into an arch that blocks. Swing and let go and it flies as a boomerang
-that returns. Hold one trigger and it becomes a lasso: catch, then pull. Match a
+that returns. Hold one trigger and it becomes a lasso: swing, release the trigger, and a tug or a trigger pull kills what it catches. Match a
 horn's colour to shatter it; three matches charge a Nova. Seven colours are your
 seven lives. Survive ten waves and two giants until dawn. Every unicorn sings its
 colour from where it stands — the horde is the music.
@@ -28,7 +28,7 @@ colour from where it stands — the horde is the music.
 |---|---|---|
 | both triggers | B (hold) or both mouse buttons | **arch** — rigid, blocks gores and charges; a fast swing strikes |
 | swing, let go | Space | **boomerang** — flies out 9 m and comes back to your hand, hitting everything on both legs |
-| one trigger, swing, let go | G | **lasso** — the loop catches a unicorn; pull your hand back hard to kill |
+| hold one trigger, swing, release the trigger | G | **lasso** — the loop flies where you look, bent by your throw, and catches a unicorn; tug the rope in any direction or pull a trigger to kill |
 | flick the slack rope | WASD while no trigger | **whip** crack |
 | arch + clap hands (needs three colour hits) | — | **Nova** — a rainbow shockwave, everything within 6 m |
 | both grips, draw a **circle**, let go | Space | sigil: the boomerang launches ahead |

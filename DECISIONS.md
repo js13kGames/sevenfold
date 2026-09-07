@@ -455,3 +455,79 @@ cut ... write proper test scripts."
   legend already says it. Paid for by moving the bot's per-wave time log to a
   `//@test` line, folding the grip flag out of the three desktop sigil
   generators, and a shorter offline message. Zip 13,286 bytes (26 under; the PLAY button moved below the panel on desktop).
+
+## Lasso for humans (session 2026-09-07)
+
+- **Report from a Quest 2 tester** (the first outside headset run): the arch,
+  the boomerang throw and the block were found unaided; the lasso was not —
+  "I could get it to drop, but pressing buttons and making throwing motions
+  didn't do anything to the unicorns." Two mechanics were the cause, both
+  reproduced in the sim with human-paced motions (scratch experiment, then the
+  new sim test "lasso at human speeds"):
+  1. **The cast only read the rope tip.** The loop flew only when the rope's
+     free end reached 3 m/s. A forward fling manages that, but the motion
+     everyone tries first — an overhead lasso spin at 1–2 turns a second with a
+     20–35 cm radius — never did: the Verlet rope is heavily damped, so the tip
+     lagged at 2.3–2.6 m/s while the hand moved at 1.3–3 m/s. Releasing the
+     trigger then silently re-formed the rope: nothing happened, which is
+     exactly the report. Now the throw signal is the greater of the tip speed
+     and 1.5 × the hand speed, threshold 2.5 m/s, remembered for 0.5 s as
+     before. A 1.5 rev/s, 20 cm spin casts; a gentle lowering of the hand
+     (tip 1.9 m/s, hand 0.5 m/s) still does not.
+  2. **The loop flew along the tip's velocity**, which for a fling is mostly
+     upward (the rope swings up like a pendulum) and for a spin is tangential
+     — i.e. sideways — and its speed scaled with the tip, so a soft throw at
+     3.9 m/s dropped at the player's feet. The loop now flies at a fixed 10 m/s
+     along head-forward × 8 + the hand's velocity at its fastest moment: it goes
+     where you look, bent up to ~30° by the throw. With the aim assist and the
+     ground slide, every human motion tried (flings of 0.18–0.35 s, spins of
+     1–2 rev/s, a side swing) catches a stalker at 3 m and at 6 m.
+  3. **The yank demanded a pull *away* from the unicorn** (≥ 3.5 m/s with a
+     positive component along hand − unicorn). A "throwing motion" toward the
+     caught unicorn, the natural follow-up, was ignored. The yank is now any
+     tug of that hand ≥ 3 m/s in any direction, **or any trigger pull** while
+     the unicorn is caught (the trigger edge is shared with the start/restart
+     logic via one helper). Catch-and-kill in one motion is possible when the
+     hand is still moving at the catch; it feels good, not cheap: the catch
+     already needs a throw.
+- **Teaching.** "Swing, let go, pull back" was too terse for a first-time
+  headset player. The permanent legend's lasso line is now "Hold one trigger:
+  lasso · swing, release the trigger · tug to kill" (742 px at 30 px serif,
+  under the 800 px bound) and wave 4's hint is two lines: "Hold one trigger,
+  swing, release it: lasso. / Caught? Tug, or pull the trigger." (620 / 489 px
+  at 38 px). The wave 1 line stays: the tester found the arch and the
+  boomerang from it.
+- **Paying for it.** The cast line grew; paid by dropping the throw-strength
+  speed (fixed 10 m/s; 8–13 was imperceptible under the aim assist), the
+  yank's direction test, `S._md=S._L.t&S._R.t` (the flags are normalised 0/1)
+  in two places, a regex for the clear/start/restart text reset, one
+  position-setter helper in audio.js (panner, listener, voices — the sound is
+  unchanged), `bpos` reused for the bolt position and the giant's circling,
+  the rope substep gravity as one constant, the lasso state object without
+  its zero fields, the hand's previous position starting at the origin (the
+  first step reads as a teleport and is ignored, as before), unused chord
+  defaults, and the colour table built in one `map`. Roadroller's optimiser
+  moved the same input between 13,253 and 13,322 bytes across five runs — one
+  of them **over the limit** — so the release build is now run more than once
+  and the smallest zip kept (SUBMISSION.md). Shipped: **13,253 bytes, 59
+  under**, the widest margin since the sigils returned.
+- **Tests.** Sim suite 24/24 (new: lazy spin casts and catches, fling catches
+  at 6 m, gentle lowering does not cast, trigger-pull yank, forward-tug yank —
+  fails on the old sim); the VR controls audit gains a lazy-overhead-spin row
+  (catch with no yank yet, since the hand is slow at the catch) and a
+  trigger-pull yank row, and its pull-back yank row now follows a lazy spin,
+  because the old superhuman spin (8 m/s at release) yanks at the catch by
+  itself. The first audit run after the change crashed the VR page half-way:
+  every kill row clears its wave, the two new rows walked the counter to 10,
+  and the audit's herd-clearing hook made wave 10 "clear" and begin a wave 11
+  that has no table entry (`WAVES[10][1]`). In play that state is unreachable
+  — the Sovereign's death goes straight to Dawn — so the fix is in the audit:
+  its clear hook resets the wave to 0. The browser suite's wave-4 hint check
+  reads the new words; the whole suite is 13/13, real Firefox and the IWER
+  runtime pass are clean, with the runtime's lasso step now catching and
+  yanking.
+- **The site's full-screen quirk.** The tester could only enter XR on
+  js13kgames.com after the page's full-screen button. The page bundle creates
+  the game iframe with `allow="accelerometer;…;xr-spatial-tracking"`, so the
+  permission is delegated; the cause is on the site or in the Quest browser and
+  is noted in SUBMISSION.md for judges rather than patched around in the zip.

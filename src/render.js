@@ -26,7 +26,7 @@ export const burst=(p,c,n,sp,up=0,life=.8)=>{const A=rdBuA,k=rdCol[c];for(let j=
 const bolt=(a,b,r)=>{const P=[];for(let i=0;i<=16;i++){const s=i/16,j=(1-s)*r;P.push(new rdT.Vector3(a[0]+(b[0]-a[0])*s+(rnd()-.5)*j,a[1]+(b[1]-a[1])*s,a[2]+(b[2]-a[2])*s+(rnd()-.5)*j))}
   rdBolt.geometry.dispose();rdBolt.geometry=new rdT.TubeGeometry(new rdT.CatmullRomCurve3(P,false,'catmullrom',0),48,r*.03+.03,4);rdBolt.visible=true;rdBoltT=.22;rdFl=1;rdU.bd.value.set(b[0],14,b[2]).normalize()};
 // the panel: title line, up to two hint lines ('|' separated), and the permanent legend of every verb and sigil, on a 1024×512 canvas
-const rdLeg=['Both triggers: arch (blocks) · swing and let go: boomerang','One trigger: lasso · swing, let go, pull back to kill','Both grips: circle throws · cross lassoes · raise and slam: Nova'];
+const rdLeg=['Both triggers: arch (blocks) · swing and let go: boomerang','Hold one trigger: lasso · swing, release the trigger · tug to kill','Both grips: circle throws · cross lassoes · raise and slam: Nova'];
 const rdSetText=(a,b='')=>{const k=a+'\n'+b;if(k==rdM.text)return;rdM.text=k;const c=rdCtx,T=(l,i)=>c.fillText(l,512,i);c.clearRect(0,0,1024,512);c.fillStyle='#e8e2ff';c.textAlign='center';
   c.font='bold 90px serif';T(a,96);c.font='38px serif';b.split('|').forEach((l,i)=>T(l,162+i*46));c.font='30px serif';c.fillStyle='#a9a2c8';rdLeg.forEach((l,i)=>T(l,320+i*42));rdTex.needsUpdate=true};
 
@@ -44,7 +44,7 @@ const BU_V=`uniform float t,ps;attribute vec3 vel,col;attribute vec2 bl;varying 
 const BU_F='varying vec4 vc;void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(vc.rgb,vc.a*smoothstep(.5,.1,d));}';
 
 export function rdInit(T_,R){
-  rdT=T_;rdM4=new rdT.Matrix4;rdV=new rdT.Vector3;rdQ=new rdT.Quaternion;rdS=new rdT.Vector3;rdUp=new rdT.Vector3(0,1,0);rdCol=COLS.map(rdX);rdCol.push(rdX(0xffffff),rdX(0x6a7080));rdPx=new rdT.Matrix4;
+  rdT=T_;rdM4=new rdT.Matrix4;rdV=new rdT.Vector3;rdQ=new rdT.Quaternion;rdS=new rdT.Vector3;rdUp=new rdT.Vector3(0,1,0);rdCol=[...COLS,0xffffff,0x6a7080].map(rdX);rdPx=new rdT.Matrix4;
   rdScene=new rdT.Scene;rdWorld=new rdT.Group;rdScene.add(rdWorld);
   rdFog=rdScene.fog=new rdT.Fog(0x0c1018,5,36);
   rdCam=new rdT.PerspectiveCamera(90,innerWidth/innerHeight,.05,400);rdCam.position.set(0,1.6,0);rdCam.rotation.order='YXZ';rdCam.rotation.y=PI;
@@ -86,7 +86,7 @@ export function rdInit(T_,R){
   return{scene:rdScene,cam:rdCam,world:rdWorld};
 }
 // one lesson per wave (index = wave): arch + boomerang, colour matching, block, lasso, the Herald, Nova, the sigils, whip, the Sovereign
-const rdHints=[,'Both triggers: swing and let go.','Strike horns with their own colour.|Red is your left, violet your right.','A rearing horn strikes. Both triggers block.','One trigger: lasso. Swing, let go, pull back.','Block its charge, then strike.|A slain giant gives two colours back.','Three colour hits turn the rainbow white.|Clap the arch together: Nova.','Both grips slow time. Draw, then let go.','Grips, raise and slam down: Nova.','Flick the loose rope: the whip.','Its horn wears every colour in turn.'];
+const rdHints=[,'Both triggers: swing and let go.','Strike horns with their own colour.|Red is your left, violet your right.','A rearing horn strikes. Both triggers block.','Hold one trigger, swing, release it: lasso.|Caught? Tug, or pull the trigger.','Block its charge, then strike.|A slain giant gives two colours back.','Three colour hits turn the rainbow white.|Clap the arch together: Nova.','Both grips slow time. Draw, then let go.','Grips, raise and slam down: Nova.','Flick the loose rope: the whip.','Its horn wears every colour in turn.'];
 // event → burst [colour (empty: the event's band), count, speed, lift, life]
 const rdB={hit:[,6,2.5],res:[,20,4,.5],kill:[,50,3,2,1.4],crack:[,5,3],catch:[7,6,1.5],caught:[,10,2],yank:[,30,5,1],block:[7,10,4,1],stagger:[7,40,4,1],ready:[7,30,2,1],sigil:[7,40,3,1],unforge:[8,15,1.5,.5],spawn:[8,20,1.5,2,1.4],charge:[,25,4,1]};
 const setP=(o,p)=>o.position.set(p[0],p[1],p[2]);
@@ -103,7 +103,7 @@ export function rdSync(S,ev,dt,H){
     else if(k=='bolt')bolt(jit(p,42,8),p,4);
     else if(k=='wave')rdSetText(e.d==5?'THE HERALD':e.d==10?'THE SOVEREIGN':'Wave '+e.d,rdHints[e.d]);
     else if(k=='ready')rdSetText('Nova ready','Clap the arch together.');
-    else if(k=='clear'||k=='start'||k=='restart')rdSetText('');
+    else if(/clear|start/.test(k))rdSetText('');
     else if(k=='over')rdSetText('The last colour is gone','Wave '+S._wave+' · Score '+S._score+' · Trigger to retry');
     else if(k=='dawn')rdSetText('Dawn','Trigger to play again');
   }

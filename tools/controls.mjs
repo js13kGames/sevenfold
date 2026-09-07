@@ -19,7 +19,7 @@ const mk=async(xr)=>{const page=await browser.newPage({viewport:{width:900,heigh
   const S=()=>page.evaluate(()=>{const s=SF.sim,f=a=>a.map(x=>+x.toFixed(3));return{ws:s._ws,wave:s._wave,md:s._md,light:s._light,ch:s._ch,L:f(s._L.p),R:f(s._R.p),Lt:s._L.t,Rt:s._R.t,H:f(s._H.p),Hf:[...s._H.f],fg:s._fg.on,ev:SF.state().events.slice(-40),mute:SF.state().mute,xr:SF.state().xr,text:SF.state().text}});
   const mark=()=>page.evaluate(()=>SF.state().events.length);const since=m=>page.evaluate(m=>SF.state().events.slice(m),m);
   const place=(v,b,r,st=3)=>page.evaluate(([v,b,r,st])=>{const s=SF.sim,fw=s._H.f,hy=Math.atan2(fw[0],fw[2]);const e=s._spawn(v,hy+b,r);e._st=st;e._sd=99;e._yaw=Math.atan2(s._H.p[0]-e._p[0],s._H.p[2]-e._p[2]);return e._b},[v,b,r,st]); // bearing relative to the head yaw, facing the player
-  const clearEn=()=>page.evaluate(()=>{SF.sim._en=[];SF.sim._q=[]});
+  const clearEn=()=>page.evaluate(()=>{SF.sim._en=[];SF.sim._q=[];SF.sim._wave=0}); // wave back to 0: each kill row clears its wave, and a walked-up counter would begin a wave 11
   const wait=ms=>page.waitForTimeout(ms);
   const holdUntil=async(key,cond,arg,ms=2500)=>{await page.keyboard.down(key);const ok=await page.waitForFunction(cond,arg,{timeout:ms}).then(()=>true).catch(()=>false);await page.keyboard.up(key);return ok};
   const settle=async()=>{await page.evaluate(()=>{SF.sim._light=7;SF.sim._inv=0});await page.waitForFunction(()=>SF.sim._md==0&&!SF.sim._fg.on,null,{timeout:6000}).catch(()=>{});await wait(400);if(!xr){await page.evaluate(()=>SF.reset());await wait(300)}}; // desktop: hands (and mouse look) back to their defaults deterministically — a key walk at software-render frame rates overshoots
@@ -91,8 +91,13 @@ const mk=async(xr)=>{const page=await browser.newPage({viewport:{width:900,heigh
   ms=await mark();await dev("__btn('left','trigger',1);__btn('right','trigger',1)");await wait(900);await dev("__btn('left','trigger',0);__btn('right','trigger',0)");await wait(300);{const st=await S(),nw=await since(ms);check(M,'release without a swing','no throw, rope returns',!nw.includes('throw')&&st.md==0,`mode=${st.md} new events=${nw}`)}
   // lasso
   await clearEn();await place(0,0,2.5);await dev("__btn('right','trigger',1)");await wait(500);s=await S();check(M,'one trigger held','lasso mode (mode 2)',s.md==2,`mode=${s.md}`);
-  ms=await mark();await dev(`__anim(u=>{const a=u*20;__pos('right',Math.sin(a)*.35,1.7+Math.cos(a)*.1,-.2-Math.cos(a)*.35);if(u>=.9)__btn('right','trigger',0)},900)`);await wait(1500);e=await since(ms);check(M,'spin + release','lasso flies and catches the unicorn',e.includes('lasso')&&e.includes('caught'),e.slice(-6).join(','));
+  ms=await mark();await dev(`__anim(u=>{const a=u*20;__pos('right',Math.sin(a)*.35,1.7+Math.cos(a)*.1,-.2-Math.cos(a)*.35);if(u>=.9)__btn('right','trigger',0)},900)`);await wait(1500);e=await since(ms);check(M,'spin + release','lasso flies and catches the unicorn',e.includes('lasso')&&e.includes('caught'),e.slice(-6).join(',')); // the hand is still fast at the catch: it may yank at once (catch-and-kill in one motion)
+  await home();
+  // human-speed lasso: a lazy overhead spin (1.5 rev/s, 20 cm) leaves the hand slow at the catch, so the yank is its own motion
+  const lazy=async()=>{await clearEn();await place(0,0,2.5);await dev("__btn('right','trigger',1)");await wait(500);ms=await mark();await dev(`__anim(u=>{const a=u*1.5*2*Math.PI*1.5;__pos('right',.25+Math.sin(a)*.2,1.8,-.4-Math.cos(a)*.2);if(u>=.95)__btn('right','trigger',0)},1500)`);await wait(1500);return since(ms)};
+  e=await lazy();check(M,'lazy overhead spin + release (1.5 rev/s, 20 cm)','lasso flies and catches the unicorn; no yank yet',e.includes('lasso')&&e.includes('caught')&&!e.includes('yank'),e.slice(-6).join(','));
   ms=await mark();await dev(`__anim(u=>__pos('right',.25,1.2,-.4+.7*u),150)`);await wait(400);e=await since(ms);check(M,'yank (pull the controller back fast)','yank, unicorn killed',e.includes('yank')&&e.includes('kill'),e.slice(-5).join(','));await home();
+  e=await lazy();ms=await mark();await dev("__btn('right','trigger',1)");await wait(300);await dev("__btn('right','trigger',0)");await wait(300);e=await since(ms);check(M,'trigger pull while a unicorn is caught','yank, unicorn killed',e.includes('yank')&&e.includes('kill'),e.slice(-5).join(','));await home();
   // block
   await clearEn();await place(0,0,1.3,0);ms=await mark();await dev("__btn('left','trigger',1);__btn('right','trigger',1)");await wait(1400);await dev("__btn('left','trigger',0);__btn('right','trigger',0)");e=await since(ms);check(M,'block (arch held while a unicorn rears)','block event, no colour lost',e.includes('block')&&!e.includes('gore'),e.slice(-6).join(','));
   // nova by clap

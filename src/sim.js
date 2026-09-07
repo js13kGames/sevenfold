@@ -1,7 +1,7 @@
 // sim.js — PURE game simulation. No DOM, no Three. Fixed DT, seeded, deterministic.
 // Arena space: player at origin, y up. The rainbow rope hangs between the hands; its mode is physical:
 //   0 free rope (whip)  1 arch: both triggers, rigid, blocks; let go while swinging → 3 boomerang
-//   2 lasso: one trigger held, rope hangs from that hand; let go while swinging → loop flies, catches, yank kills
+//   2 lasso: one trigger held, rope hangs from that hand; release while swinging → loop flies where you look, catches; a tug or a trigger kills
 //   3 boomerang in flight (hands empty)  4 nova collapse (arch clapped together with a full charge)
 // Sigils: hold both grips (squeeze) — time slows and the rainbow turns white — draw with the hands, let go:
 //   circle → the boomerang launches ahead, cross → the lasso is cast ahead, raise-and-slam → Nova (if charged).
@@ -22,7 +22,7 @@ const edist=(e,q)=>min(dist(q,bc(e))-.5*e._sc,dist(q,hd(e))-.3*e._sc);
 
 export function createSim(seed){
 const S={_seed:seed};
-const hand=x=>({p:[x,1.2,.3],f:[0,0,1],v:[0,0,0],t:0,g:0,pt:0,pp:[x,1.2,.3],ht:0,n:0});
+const hand=x=>({p:[x,1.2,.3],f:[0,0,1],v:[0,0,0],t:0,g:0,pt:0,pp:[0,0,0],ht:0,n:0});
 const rnd=()=>S._rng();
 const ev=(k,p,b,d)=>S._ev.push({k,p:p?[...p]:0,b:b|0,d});
 const fwd=()=>S._H.f;
@@ -33,7 +33,7 @@ const resetRope=()=>{S._tip=0;for(let i=0;i<=N;i++){S._rp[i]=lerp(S._L.p,S._R.p,
 S._init=()=>{
   S._rng=mulberry(S._seed);S._L=hand(-.3);S._R=hand(.3);S._H={p:[0,1.6,0],f:[0,0,1]};
   S._rp=[];S._rq=[];S._rv=[];for(let i=0;i<=N;i++){S._rp.push([0,0,0]);S._rq.push([0,0,0]);S._rv.push([0,0,0])}resetRope();
-  S._md=0;S._bm=0;S._ls=0;S._ch=0;S._crk=0;S._nv=0;S._tip=0;S._tipI=N>>1;S._pkt=0;S._pd=[0,0,1];S._tk=0;S._tkt=0;S._tv=[0,0,1];S._fg={on:0,cd:0};
+  S._md=0;S._bm=0;S._ls=0;S._ch=0;S._crk=0;S._nv=0;S._tip=0;S._tipI=N>>1;S._pkt=0;S._pd=[0,0,1];S._tkt=0;S._tv=[0,0,1];S._fg={on:0,cd:0};
   S._light=7;S._inv=0;S._en=[];S._wave=0;S._ws=0;S._wt=0;S._q=[];S._st=0;S._wtime=0;S._front=0;S._log=[];
   S._t=0;S._score=0;S._ev=[];S._bolt=4;S._dawn=0;
 };
@@ -65,9 +65,8 @@ const rope=()=>{
     let p0=L,pN=R,pin=1,sl=SEG;
     if(md==2){const ls=S._ls;p0=ls.h.p;if(ls.e){pN=hd(ls.e);sl=max(SEG,dist(p0,pN)/N)}else if(ls.out){pN=ls.p;sl=max(SEG,dist(p0,pN)/N)}else pin=0}
     if(dist(p0,P[0])>.5||pin&&dist(pN,P[N])>.5)for(let i=0;i<=N;i++){P[i]=lerp(p0,pin?pN:p0,i/N);Q[i]=[...P[i]];prev[i]=[...P[i]]}
-    const sdt=DT/3;
     for(let ss=0;ss<3;ss++){
-      for(let i=1;i<=N-pin;i++){const p=P[i],q=Q[i],v=mul(sub(p,q),.985);Q[i]=[...p];p[0]+=v[0];p[1]+=v[1]-7*sdt*sdt;p[2]+=v[2];if(p[1]<.03)p[1]=.03}
+      for(let i=1;i<=N-pin;i++){const p=P[i],q=Q[i],v=mul(sub(p,q),.985);Q[i]=[...p];p[0]+=v[0];p[1]+=v[1]-7/9*DT*DT;p[2]+=v[2];if(p[1]<.03)p[1]=.03}
       for(let it=0;it<5;it++){P[0]=[...p0];if(pin)P[N]=[...pN];
         for(let i=0;i<N;i++){const a=P[i],b=P[i+1],dv=sub(b,a),l=len(dv)||1e-6,c=mul(dv,(l-sl)/l*.5);if(i>0){a[0]+=c[0];a[1]+=c[1];a[2]+=c[2]}if(i+1<N||!pin){b[0]-=c[0];b[1]-=c[1];b[2]-=c[2]}}}
     }
@@ -79,9 +78,9 @@ const rope=()=>{
 };
 
 // ---------- modes: arch / throw / lasso / nova ----------
-const cast=(p,v)=>{const ls=S._ls||(S._ls={h:S._R,b:0,e:0});S._md=2;ls.out=1;ls.t=0;ls.p=p;ls.v=v;S._tkt=0;ev('lasso',p,ls.b)};
+const cast=(p,v)=>{const ls=S._ls||(S._ls={h:S._R,b:0});S._md=2;ls.out=1;ls.t=0;ls.p=p;ls.v=v;S._tkt=0;ev('lasso',p,ls.b)};
 const throwB=(P,d,h)=>{const m=mid();S._md=3;S._bm={p:m,o:P.map(p=>sub(p,m)),d,t:0,hit:new Set,ret:0,h};S._pkt=0;ev('throw',m)};
-const endLasso=()=>{S._ls=0;S._md=S._L.t&&S._R.t?1:0;resetRope()};
+const endLasso=()=>{S._ls=0;S._md=S._L.t&S._R.t;resetRope()};
 const nova=()=>{S._ch=0;S._md=4;S._nv=.6;const m=mid();ev('nova',m);for(const e of S._en)if(e._st!=5&&dist(e._p,hx())<6.5)damage(e,6,e._b,hd(e),1)};
 const modes=()=>{
   const L=S._L,R=S._R,md=S._md,both=L.t&&R.t;
@@ -89,22 +88,22 @@ const modes=()=>{
   if(md==3)return;
   if(md==4){if(S._nv<=0&&dist(L.p,R.p)>.3){S._md=0;resetRope()}return}
   if(md==2){const ls=S._ls;ls.t+=DT;
-    if(ls.e){const e=ls.e,v=ls.h.v,aw=sub(ls.h.p,e._p);
+    if(ls.e){const e=ls.e,v=ls.h.v;
       if(e._st!=4){endLasso();return}
-      if(len(v)>=3.5&&dot(v,aw)>0){ev('yank',hd(e),ls.b);e._st=3;e._sd=1;e._tm=0;damage(e,e._boss?8:5,ls.b,hd(e));endLasso();return}
+      if(len(v)>=3||anyT()){ev('yank',hd(e),ls.b);e._st=3;e._sd=1;e._tm=0;damage(e,e._boss?8:5,ls.b,hd(e));endLasso();return}
       if(ls.t>4||both){stag(e,1);endLasso()}return}
     if(ls.out){ls.v[1]-=8*DT;const n=near(ls.p,3)[0];if(n)ls.v=lerp(ls.v,mul(norm(sub(hd(n[0]),ls.p)),len(ls.v)),.12); // aim assist
       ls.p=add(ls.p,mul(ls.v,DT));if(ls.p[1]<.1)ls.p[1]=.1;if(n&&n[1]<.9&&!(n[0]._boss&&n[0]._st==9)){const e=n[0];e._st=4;e._tm=0;e._rear=0;ls.e=e;ls.t=0;ev('caught',hd(e),e._b);return}
       if(ls.t>1.3||len(ls.p)>14)endLasso();return}
-    if(S._tip>=3){S._tk=S._tip;S._tkt=.5;S._tv=norm(S._rv[N])}else if(S._tkt>0)S._tkt-=DT;
-    if(!ls.h.t){if(S._tkt>0)cast([...S._rp[N]],mul(S._tv,min(13,S._tk*1.3)));else endLasso();return}
+    const hv=ls.h.v;if(max(S._tip,len(hv)*1.5)>=2.5){S._tkt=.5;S._tv=hv}else if(S._tkt>0)S._tkt-=DT; // a throw: the rope tip or the hand moving; remembered 0.5 s
+    if(!ls.h.t){if(S._tkt>0)cast([...S._rp[N]],mul(norm(add(mul(fwd(),8),S._tv)),10));else endLasso();return} // flies where you look, bent by the throw
     if(both)endLasso();return}
   if(md==1){const v=lerp(L.v,R.v,.5),sp=len(v);if(sp>=2.5&&sp<20){S._pkt=.5;S._pd=norm(v)}else if(S._pkt>0)S._pkt-=DT; // release grace
     if(!both){if(S._pkt>0)throwB(S._rp,S._pd,L.t?L:R);else S._md=0}
     else{const d=dist(L.p,R.p),cl=dot(sub(R.v,L.v),norm(sub(L.p,R.p)));if(S._ch>=3&&d<.15&&cl>=2)nova()}
     return}
   if(both){S._md=1;ev('arc',mid())}
-  else{const h=L.t?L:R.t?R:0;if(h&&h.ht>=.25){S._md=2;S._ls={h,b:h==L?6:0,out:0,e:0,t:0};ev('rope',h.p,h==L?6:0)}}
+  else{const h=L.t?L:R.t?R:0;if(h&&h.ht>=.25){S._md=2;S._ls={h,b:h==L?6:0,t:0};ev('rope',h.p,S._ls.b)}}
 };
 // ---------- sigils (both grips held) ----------
 // features accumulate while both grips are held: path length and turning of the midpoint in the head's right/up plane,
@@ -118,7 +117,7 @@ const forge=()=>{const G=S._fg,L=S._L,R=S._R,both=L.g&&R.g,m=mid();
   if(k==1)throwB(arch(),norm([f[0],0,f[2]]),R);else if(k==2)cast([...R.p],mul(norm([f[0],.3,f[2]]),11));else if(k==3&&S._ch>=3)nova()};
 const boom=()=>{const B=S._bm;if(!B)return;B.t+=DT;
   if(!B.ret){B.p=add(B.p,mul(B.d,11*DT));if(B.t>.75||dist(B.p,S._H.p)>9){B.ret=1;B.hit.clear();ev('turn',B.p)}}
-  else{const h=B.h.p,d=sub(h,B.p),l=len(d);if(l<.4){S._md=S._L.t&&S._R.t?1:0;S._bm=0;ev('catch',h);resetRope();return}B.p=add(B.p,mul(d,min(1,13*DT/l)))}
+  else{const h=B.h.p,d=sub(h,B.p),l=len(d);if(l<.4){S._md=S._L.t&S._R.t;S._bm=0;ev('catch',h);resetRope();return}B.p=add(B.p,mul(d,min(1,13*DT/l)))}
   for(const e of S._en){if(e._st==5||B.hit.has(e))continue;const[i,d]=nearest(e,0,B);if(d<.15){B.hit.add(e);damage(e,2,band(i/N),add(B.p,B.o[i]))}}
 };
 const strikes=()=>{const md=S._md,P=S._rp;if(S._crk>0)S._crk-=DT;
@@ -131,7 +130,7 @@ const spawn=(v,b,r)=>{const T=VT[v],e={_v:v,_p:bpos(b,r),_yaw:0,_hp:T[0],_b:floo
 const summon=e=>{for(let i=0;i<(e._v==4?3:2);i++)spawn(0,atan2(e._p[0],e._p[2])+(i-1)*.5,dist(e._p,hx())+1)};
 const boss=(e,w,dl,dir)=>{const st=e._st,T=VT[e._v],H=hx();
   if(e._v==4)e._b=floor(S._t/2)%7;
-  if(st==7){const a=atan2(e._p[0]-H[0],e._p[2]-H[2])+w*.35,r=dl+(7-dl)*min(1,w*.6);e._p=[H[0]+sin(a)*r,0,H[2]+cos(a)*r];e._yaw=a+PI/2;e._gal=.7;if(dl>8)e._tm=0;
+  if(st==7){const a=atan2(e._p[0]-H[0],e._p[2]-H[2])+w*.35,r=dl+(7-dl)*min(1,w*.6);e._p=add(H,bpos(a,r));e._yaw=a+PI/2;e._gal=.7;if(dl>8)e._tm=0;
     if(e._tm>(e._v==4?3:4)){e._cnt++;e._tm=0;e._yaw=atan2(dir[0],dir[2]);
       if(e._cnt%3==0){e._st=10;e._cue=[...H];ev('cue',H,e._b,.9)}
       else{e._st=8;ev('charge',hd(e),e._b);if(e._cnt%2==1&&S._en.length<9)summon(e)}}}
@@ -167,7 +166,8 @@ const beginWave=n=>{S._wave=n;S._ws=1;S._wtime=0;S._front=atan2(S._H.f[0],S._H.f
   const c=[d[2],d[3],d[4]];for(let more=1;more;){more=0;for(let v=0;v<3;v++)if(c[v]-->0){S._q.push(v);more=1}}
   S._iv=d[0];S._st=1};
 const trigEdge=h=>h.t&&!h.pt;
-const waves=w=>{const trig=trigEdge(S._L)||trigEdge(S._R);
+const anyT=()=>trigEdge(S._L)||trigEdge(S._R);
+const waves=w=>{const trig=anyT();
   if(S._ws==0){if(trig){S._ws=2;S._wt=1.5;S._wave=0;ev('start')}return}
   if(S._ws==2){S._wt-=w;if(S._wt<=0)beginWave(S._wave+1);return}
   if(S._ws>=3){S._wt-=w;if(S._ws==4)S._dawn=min(1,S._dawn+w/8);if(S._wt<=0&&trig){S._init();S._ws=2;S._wt=1.5;ev('restart')}return}
@@ -186,7 +186,7 @@ S.step=n=>{for(let i=0;i<(n||1);i++){
   // hand velocity per pose update, not per step: a display frame can cover two sim steps (72 Hz vs 90 Hz)
   for(const h of[S._L,S._R]){h.t=h.t?1:0;h.n++;const p=h.p,q=h.pp;if(p[0]!=q[0]||p[1]!=q[1]||p[2]!=q[2]){const r=mul(sub(p,q),1/(DT*h.n));h.v=len(r)>20?[0,0,0]:lerp(h.v,r,.5);h.pp=[...p];h.n=0}else if(h.n>9)h.v=mul(h.v,.7)} // a teleport (reconnect, macro reset) is not a swing
   if(S._inv>0)S._inv-=w;
-  S._bolt-=DT;if(S._bolt<=0){S._bolt=6+rnd()*9;const a=rnd()*6.28;ev('bolt',[sin(a)*32,0,cos(a)*32],floor(rnd()*7))}
+  S._bolt-=DT;if(S._bolt<=0){S._bolt=6+rnd()*9;ev('bolt',bpos(rnd()*6.28,32),floor(rnd()*7))}
   rope();forge();modes();strikes();boom();enemies(w);waves(w);
   S._L.pt=S._L.t;S._R.pt=S._R.t;
 }};

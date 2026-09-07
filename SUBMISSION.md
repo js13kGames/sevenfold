@@ -2,7 +2,9 @@
 
 ## 0. Do these by hand before submitting (top item)
 
-Nothing has run on a real headset. Everything below the checklist ran on the
+One outside tester has run it on a Quest 2 (it launches, the arch and the
+boomerang and the block were found; the lasso was not — see the lasso notes in
+DECISIONS.md, "Lasso for humans"). Everything else below the checklist ran on the
 build machine: desktop Chromium, real Firefox 155, a fake `navigator.xr` shim,
 and Meta's Immersive Web Emulation Runtime (the runtime inside the Immersive
 Web Emulator extension, Quest 3 profile). **Manual headset / emulator
@@ -27,8 +29,12 @@ checklist** (with the *Immersive Web Emulator* Chrome extension, or a Quest):
    When three colour hits charge the Nova the panel switches to "Nova ready".
 4. Hold both triggers: the rope snaps into a rainbow arch. Swing forward and
    release: it flies out and returns (whoosh, catch). Hold one trigger for a
-   moment: a loop hangs from that hand; swing and let go: it flies; catch a
-   unicorn, pull your hand back sharply: it dies.
+   moment: a loop hangs from that hand; swing it (an overhead spin or a forward
+   fling, at an ordinary pace) and release the trigger: the loop flies where you
+   are looking, bent by your throw. It lands on a unicorn: the unicorn stops and
+   struggles. Tug that hand in any direction, or pull either trigger: it dies.
+   Wave 4's panel reads "Hold one trigger, swing, release it: lasso. / Caught?
+   Tug, or pull the trigger."
 5. Hold both grips: the world slows and the rainbow turns white. Draw a circle
    and let go: the boomerang launches ahead. Cross your hands and pull apart: the
    lasso is cast. Raise both hands and slam down with a full charge: Nova.
@@ -46,6 +52,12 @@ checklist** (with the *Immersive Web Emulator* Chrome extension, or a Quest):
    inside the session: WASD/QE nudge both hands, B holds both triggers, V both
    grips, Space/G/N draw the three sigils. There is no locomotion by design.
 10. Anything that fails: note it and fix it in the bugfix window (PRs by 14 Sept).
+11. **On the js13kgames.com game page itself** the tester (and other WebXR
+    entries, by their account) could only start the XR session after pressing
+    the site's full-screen button. The site's iframe does carry
+    `allow="…xr-spatial-tracking"` (checked in its bundle), so this is a site or
+    Quest-browser quirk, not something the zip can fix; judges on a headset
+    should use the full-screen button or the direct play.js13kgames.com URL.
 
 **Sound** could not be heard on the build machine (headless). The synth runs
 without errors for full games; please listen to one wave and one giant on desktop.
@@ -57,18 +69,20 @@ controllers (the trigger verbs all work with hands).
 
 | step | bytes |
 |---|---|
-| source, concatenated | 47,036 |
-| terser (property-mangled) | 33,013 |
-| roadroller -O2 | 17,071 |
-| index.html (inlined) | 17,677 |
-| **dist/sevenfold.zip** | **13,286** (limit 13,312; margin 26) |
+| source, concatenated | 46,942 |
+| terser (property-mangled) | 32,784 |
+| roadroller -O2 | 17,029 |
+| index.html (inlined) | 17,635 |
+| **dist/sevenfold.zip** | **13,253** (limit 13,312; margin 59) |
 
 The shipping build is `node build.js --level 2 --iter 200` (`npm run build`
 also writes `dist/test.html`, the same sources with the `//@test` hook lines —
 `window.SF`, `hashState`, the event log — kept; the zip has none of them and
 the browser suite asserts that). Roadroller's optimiser is not perfectly
-deterministic: rebuilding can move the zip by ±15 bytes; level 3 measured 8
-bytes larger. `build.js` fails above the limit.
+deterministic: the same source measured 13,253–13,322 bytes across five runs
+(one of them over the limit), so **build at least twice and keep the smallest
+zip** (`node build.js --level 2 --iter 200` again; the printed size is the one
+to trust). Level 3 measured larger. `build.js` fails above the limit.
 
 `unzip -l` → one entry, `index.html`. `unzip -t` → no errors. The only URL in
 the build is `https://play.js13kgames.com/2026/webxr/three.js`. No

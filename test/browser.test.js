@@ -35,7 +35,7 @@ if(!existsSync('tools/three-hosted-r185.js'))throw new Error('missing tools/thre
 console.log('three.js source: local copy of '+THREE+' via page.route (CORS: no ACAO header on the host)');
 const replay=JSON.parse(readFileSync('test/replays/w1-2.json','utf8'));
 // what each wave must teach (substrings of the hint canvas text)
-const HINTS={1:['Both triggers'],2:['colour','Red is your left'],3:['block'],4:['lasso','pull back'],5:['THE HERALD','charge'],6:['Nova','Clap'],7:['grips'],8:['slam','Nova'],9:['whip'],10:['THE SOVEREIGN','colour']};
+const HINTS={1:['Both triggers'],2:['colour','Red is your left'],3:['block'],4:['lasso','Tug'],5:['THE HERALD','charge'],6:['Nova','Clap'],7:['grips'],8:['slam','Nova'],9:['whip'],10:['THE SOVEREIGN','colour']};
 
 async function runBrowser(bn){
   const browser=await(bn=='firefox'?firefox:chromium).launch({args:bn=='firefox'?[]:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});

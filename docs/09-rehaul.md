@@ -22,7 +22,7 @@ player needs them (below) — and, permanently underneath in a dimmer serif, the
 legend of every verb and sigil:
 
     Both triggers: arch (blocks) · swing and let go: boomerang
-    One trigger: lasso · swing, let go, pull back to kill
+    Hold one trigger: lasso · swing, release the trigger · tug to kill
     Both grips: circle throws · cross lassoes · raise and slam: Nova
 
 When three colour hits charge the Nova, the panel switches to "Nova ready / Clap
@@ -48,7 +48,7 @@ physical state of the triggers (squeeze counts as trigger, so grips work too):
 | free rope | no triggers | hangs; a fast flick (tip ≥ 6 m/s) **cracks** for 1 damage in a 0.4 m sphere, band = band at the tip |
 | **arch** | both triggers | the rope stiffens into a rainbow arch (bulges up/forward 0.3 m). A fast swing (hand ≥ 3.5 m/s) is a melee strike (2 dmg, band at contact). The arch **blocks**: a gore or charge whose line to your head crosses the arch is stopped and the unicorn staggers |
 | **boomerang** | let go of the arch while both hands move ≥ 2.5 m/s (and < 20: teleports are not throws) | the arch flies along the hand velocity at 11 m/s for 0.75 s or 9 m, turns, and homes back to the throwing hand at 13 m/s; auto-caught within 0.4 m. Hits every unicorn once on the way out and once on the way back (2 dmg, band = the arch point that touched). The hands are empty while it is out |
-| **lasso** | one trigger held ≥ 0.25 s | the rope detaches from the other hand and hangs from this one with a loop at the end (the far colour: right hand = red end, left hand = violet). Spin it (tip ≥ 3 m/s) and let go: the loop flies (≤ 13 m/s, gravity 8, mild aim assist toward the nearest unicorn within 3 m). Landing within 0.9 m of a unicorn **catches** it: it stops, struggles, is dragged slowly toward you. **Yank** (hand ≥ 3.5 m/s away from it) for 5 damage (8 on a giant). Released after 4 s, or when both triggers are pressed |
+| **lasso** | one trigger held ≥ 0.25 s | the rope detaches from the other hand and hangs from this one with a loop at the end (the far colour: right hand = red end, left hand = violet). Swing it — the rope tip ≥ 2.5 m/s **or the hand ≥ 1.7 m/s**, remembered for 0.5 s — and release the trigger: the loop flies at 10 m/s **where you look, bent by the throw** (direction = head forward × 8 + the hand's velocity at its fastest; gravity 8, aim assist toward the nearest unicorn within 3 m, and it keeps sliding along the ground for up to 1.3 s). Landing within 0.9 m of a unicorn **catches** it: it stops and struggles. **Yank**: any tug of that hand ≥ 3 m/s in any direction, **or any trigger pull**, for 5 damage (8 on a giant). Released after 4 s, or when both triggers are held |
 | **nova** | arch held with a full charge, then clap the hands together (< 0.15 m, closing ≥ 2 m/s) | the rope collapses and a rainbow shockwave hits everything within 6.5 m for a resonant 18, staggers survivors 1.5 s, slow-motion 0.6 s. Charge = 3 resonant hits |
 
 Colour resonance: a hit whose band equals the horn colour deals ×3 (a resonant
@@ -101,7 +101,7 @@ death is Dawn.
 | 1 | 4 stalkers, ±40° | Both triggers: swing and let go. |
 | 2 | 6 stalkers, ±70° | Strike horns with their own colour. / Red is your left, violet your right. |
 | 3 | 5 stalkers + 3 chargers, ±100° | A rearing horn strikes. Both triggers block. |
-| 4 | 4 stalkers + 3 chargers + 1 brute, ±140° | One trigger: lasso. Swing, let go, pull back. |
+| 4 | 4 stalkers + 3 chargers + 1 brute, ±140° | Hold one trigger, swing, release it: lasso. / Caught? Tug, or pull the trigger. |
 | 5 | **The Herald** | Block its charge, then strike. / A slain giant gives two colours back. |
 | 6 | 8 stalkers + 2 brutes, 360° | Three colour hits turn the rainbow white. / Clap the arch together: Nova. |
 | 7 | 4 stalkers + 6 chargers, 360° | Both grips slow time. Draw, then let go. |

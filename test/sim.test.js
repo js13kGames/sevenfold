@@ -71,6 +71,17 @@ t('A2 lasso: a caught enemy is freed after 4 s (stagger), then resumes',()=>{
   for(let i=0;i<90;i++)spin(1);let rel=0;for(let i=0;i<120&&!rel;i++){const v=S._rv[N];if(v[2]>3&&Math.abs(v[0])<v[2]*.4){spin(0);rel=1}else spin(1)}
   for(let i=0;i<120&&!(S._ls&&S._ls.e);i++)inj(L0,R0);ok(S._ls&&S._ls.e==e,'caught');
   for(let i=0;i<4.2*90;i++)inj(L0,R0);eq(S._ls,0,'released');ok(e._st!=4,'freed');ks()});
+t('A2 lasso at human speeds: a lazy overhead spin (1.5 rev/s, 20 cm) casts and catches; a forward fling reaches 6 m; a gentle lowering does not cast; a caught unicorn dies to a forward tug or a trigger pull',()=>{
+  const lerp=(a,b,u)=>a.map((x,i)=>x+(b[i]-x)*u),sm=u=>u*u*(3-2*u);
+  const catchWith=(motion,d)=>{const{S,inj,L0,R0,ks}=fresh();const e=S._spawn(0,0,d);e._st=3;e._sd=99;for(let i=0;i<40;i++)inj(L0,R0,0,1);eq(S._md,2);
+    const last=motion(inj,L0);let c=0,cast=0;for(let i=0;i<150&&!c;i++){inj(L0,last);const k=ks();if(k.includes('lasso'))cast=1;if(k.includes('caught'))c=1}return{S,inj,L0,e,c,cast,last,ks}};
+  const spin=(inj,L0)=>{let p;for(let i=1;i<=180;i++){const a=i*DT*1.5*2*Math.PI;p=[.3+Math.sin(a)*.2,1.8,.3+Math.cos(a)*.2];inj(L0,p,0,1)}inj(L0,p,0,0);return p};
+  const fling=(inj,L0)=>{const a=[.35,1.3,-.15],b=[.3,1.4,.6];for(let i=0;i<=27;i++)inj(L0,lerp(a,b,sm(i/27)),0,1);inj(L0,b,0,0);return b};
+  ok(catchWith(spin,3).c,'lazy spin casts and catches');
+  const F=catchWith(fling,6);ok(F.cast&&F.c,'fling catches at 6 m');
+  {const{S,inj,L0,R0,ks}=fresh();for(let i=0;i<40;i++)inj(L0,R0,0,1);const b=[.25,.8,.45];for(let i=0;i<=72;i++)inj(L0,lerp(R0,b,sm(i/72)),0,1);inj(L0,b,0,0);for(let i=0;i<30;i++)inj(L0,b);ok(!ks().includes('lasso'),'no cast from a gentle lowering');eq(S._md,0,'rope back')}
+  {const{S,inj,L0,e,last,ks}=catchWith(fling,3);for(let i=0;i<20;i++)inj(L0,last);inj(L0,last,0,1);inj(L0,last,0,1);const k=ks();ok(k.includes('yank')&&e._st==5,'trigger pull yanks: '+k)}
+  {const{S,inj,L0,e,last,ks}=catchWith(fling,3);for(let i=0;i<20;i++)inj(L0,last);for(let i=1;i<=13;i++)inj(L0,lerp(last,[last[0],last[1],last[2]+.5],i/13));const k=ks();ok(k.includes('yank')&&e._st==5,'forward tug yanks: '+k)}});
 t('A2 nova: needs 3 charge; arch + clap (hands close fast) → nova, every enemy within 6.5 m takes a resonant 18, slow-mo, charge spent; no nova without charge',()=>{
   const{S,inj,L0,R0,ks}=fresh();for(let i=0;i<5;i++)S._spawn(0,i,3);const far=S._spawn(0,0,12);
   const clap=()=>{for(let i=0;i<20;i++)inj(L0,R0,1,1);let d=.5;for(let i=0;i<10;i++){d-=4*DT;inj([-d/2,1.2,.45],[d/2,1.2,.45],1,1)}};
